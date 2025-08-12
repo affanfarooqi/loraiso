@@ -5,11 +5,11 @@ import ProductCard from "../components/ProductCard";
 import { products, categories } from "../data/products";
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "featured">("name");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
 
-  const productsRef = useRef<HTMLDivElement | null>(null);
+  const productsRef = useRef(null);
 
   const scrollToProducts = () => {
     productsRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,7 +112,7 @@ export default function HomePage() {
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                onChange={(e) => setSortBy(e.target.value)} 
                 className="select md:w-60"
               >
                 <option value="name">Name (A–Z)</option>
@@ -212,8 +212,8 @@ export default function HomePage() {
                   <div className="text-sm text-brand-charcoal/70">Premium Products</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">10K+</</div>
-                  <div className="text-sm text-brand-charcoal/70">Happy Customers</div>
+                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">10K+</div>
+                    <div className="text-sm text-brand-charcoal/70">Happy Customers</div>
                 </div>
               </div>
             </div>
