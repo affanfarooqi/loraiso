@@ -1,10 +1,7 @@
-import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { CartProvider } from '../components/CartContext'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Loraiso - Pure as Nature Intended',
@@ -20,11 +17,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className} style={{ background: 'var(--color-background)', color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
+      <body style={{ background: 'var(--color-background)', color: 'var(--color-foreground)', fontFamily: 'var(--font-body)' }}>
         <CartProvider>
           <div className="flex flex-col min-h-screen">
             <Header className="header" />
-            <main className="flex-1 container mx-auto px-4">
+            <main className="flex-1">
               {children}
             </main>
             <Footer className="footer" />
