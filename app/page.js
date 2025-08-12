@@ -1,184 +1,168 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ProductCard from "../components/ProductCard";
 import { products, categories } from "../data/products";
 
-export default function Shop() {
+export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
-  const [searchTerm, setSearchTerm] = useState("");
+  const productsRef = useRef(null);
 
-  // Filter products based on category and search
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts =
+    selectedCategory === "all"
+      ? products
+      : products.filter((p) => p.category === selectedCategory);
 
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.price - b.price;
-      case "price-high":
-        return b.price - a.price;
-      case "name":
-        return a.name.localeCompare(b.name);
-      case "featured":
-        return b.featured - a.featured;
-      default:
-        return 0;
-    }
-  });
+  const scrollToProducts = () => {
+    productsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
-    <div className="min-h-screen bg-brand-cream">
-      {/* Premium Header */}
-      <div className="header bg-brand-purple text-white">
-        <div className="container mx-auto px-6 py-16">
-          <h1 className="text-5xl font-serif font-bold mb-6">Our Premium Collection</h1>
-          <p className="text-xl font-sans max-w-2xl leading-relaxed">
-            Discover our carefully curated selection of cold-pressed oils, artisan dairy, and natural foods. 
-            Each product is crafted with care and tested for the highest quality standards.
-          </p>
+    <div className="bg-brand-cream text-brand-charcoal font-sans">
+      {/* Hero Section */}
+      <section id="home" className="relative min-h-screen flex items-center hero-pattern">
+        <div className="absolute inset-0 gradient-overlay"></div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-white">
+              <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
+                Pure As Nature <span className="text-brand-gold">Intended</span>
+              </h1>
+              <p className="text-xl mb-8 opacity-90 leading-relaxed">
+                Discover our premium collection of cold-pressed oils, artisan dairy, and natural foods.
+                Crafted with care, delivered with excellence.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button onClick={scrollToProducts} className="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg">
+                  Explore Products
+                </button>
+                <button className="border-2 border-brand-gold text-brand-gold px-8 py-4 rounded-full font-semibold text-lg hover:bg-brand-gold hover:text-brand-charcoal transition-all">
+                  Learn More
+                </button>
+              </div>
+            </div>
+            <div className="floating-animation">
+              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-brand-gold/30">
+                <div className="text-center text-white">
+                  <div className="text-6xl font-serif font-bold text-brand-gold mb-2">15%</div>
+                  <div className="text-xl mb-4">Save Instantly</div>
+                  <div className="text-sm opacity-80 mb-6">On your first order of premium products</div>
+                  <button className="bg-brand-gold text-brand-charcoal px-6 py-3 rounded-full font-semibold hover:bg-yellow-400 transition-colors">
+                    Claim Offer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Luxury Sidebar Filters */}
-          <div className="lg:w-72 flex-shrink-0">
-            <div className="bg-white rounded-xl p-6 shadow-md border border-brand-gold/20 sticky top-24">
-              {/* Premium Search */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-brand-charcoal mb-3 font-sans">
-                  Search Products
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search for products..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-purple focus:border-brand-purple font-sans"
-                  />
-                  <svg className="absolute left-3 top-3.5 w-5 h-5 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      {/* Featured Products */}
+      <section id="products" ref={productsRef} className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-charcoal mb-4">
+              Premium Collection
+            </h2>
+            <p className="text-lg text-brand-charcoal/80 max-w-2xl mx-auto">
+              Carefully curated selection of the finest natural products, sourced with integrity and crafted with expertise.
+            </p>
+          </div>
+
+          {/* Product Categories */}
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            <button
+              onClick={() => setSelectedCategory("all")}
+              className={`category-btn ${selectedCategory === "all" ? "active" : ""}`}
+            >
+              All Products
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`category-btn ${selectedCategory === cat.id ? "active" : ""}`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-charcoal mb-6">
+                Our Story
+              </h2>
+              <p className="text-lg text-brand-charcoal/80 mb-6 leading-relaxed">
+                At Loraiso, we believe in the power of pure, natural ingredients. Our journey began with a simple mission:
+                to bring you the finest quality products that nature has to offer, preserved in their most authentic form.
+              </p>
+              <p className="text-lg text-brand-charcoal/80 mb-8 leading-relaxed">
+                From cold-pressed oils to artisan dairy products, every item in our collection is carefully sourced and
+                crafted to meet the highest standards of quality and purity.
+              </p>
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div>
+                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">100%</div>
+                  <div className="text-sm text-brand-charcoal/70">Pure &amp; Natural</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">50+</div>
+                  <div className="text-sm text-brand-charcoal/70">Premium Products</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">10K+</div>
+                  <div className="text-sm text-brand-charcoal/70">Happy Customers</div>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-brand-purple/10 rounded-3xl p-8">
+                <div className="aspect-square bg-brand-gold/20 rounded-2xl flex items-center justify-center">
+                  <svg className="w-24 h-24 text-brand-purple" viewBox="0 0 100 100" fill="currentColor">
+                    <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M25 50 L75 25" stroke="currentColor" strokeWidth="2" />
+                    <path d="M25 75 L75 50" stroke="currentColor" strokeWidth="2" />
                   </svg>
                 </div>
               </div>
-
-              {/* Elegant Categories */}
-              <div className="mb-8">
-                <h3 className="text-lg font-serif font-bold text-brand-charcoal mb-4">Categories</h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setSelectedCategory("all")}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-sans ${
-                      selectedCategory === "all"
-                        ? "bg-brand-purple/10 text-brand-purple font-bold border-l-4 border-brand-gold"
-                        : "text-brand-charcoal hover:bg-brand-cream"
-                    }`}
-                  >
-                    All Products ({products.length})
-                  </button>
-                  {categories.map(category => {
-                    const count = products.filter(p => p.category === category.id).length;
-                    return (
-                      <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 font-sans ${
-                          selectedCategory === category.id
-                            ? "bg-brand-purple/10 text-brand-purple font-bold border-l-4 border-brand-gold"
-                            : "text-brand-charcoal hover:bg-brand-cream"
-                        }`}
-                      >
-                        {category.name} ({count})
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Refined Sort Options */}
-              <div>
-                <label className="block text-sm font-medium text-brand-charcoal mb-3 font-sans">
-                  Sort By
-                </label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-purple focus:border-brand-purple font-sans"
-                >
-                  <option value="name">Name (A-Z)</option>
-                  <option value="price-low">Price (Low to High)</option>
-                  <option value="price-high">Price (High to Low)</option>
-                  <option value="featured">Featured First</option>
-                </select>
-              </div>
             </div>
-          </div>
-
-          {/* Premium Products Grid */}
-          <div className="flex-1">
-            {/* Results Info */}
-            <div className="flex items-center justify-between mb-8">
-              <p className="text-brand-charcoal font-sans">
-                Showing {sortedProducts.length} of {products.length} premium products
-                {searchTerm && (
-                  <span> for "<span className="text-brand-purple">{searchTerm}</span>"</span>
-                )}
-              </p>
-              
-              {/* Mobile Sort */}
-              <div className="lg:hidden">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-sans focus:ring-brand-purple"
-                >
-                  <option value="name">Name (A-Z)</option>
-                  <option value="price-low">Price (Low to High)</option>
-                  <option value="price-high">Price (High to Low)</option>
-                  <option value="featured">Featured First</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Products Grid */}
-            {sortedProducts.length > 0 ? (
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {sortedProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-white rounded-xl border border-brand-gold/20 p-8">
-                <svg className="w-20 h-20 text-brand-gold mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-2xl font-serif font-bold text-brand-charcoal mb-3">No premium products found</h3>
-                <p className="text-brand-charcoal mb-6 font-sans">
-                  Try adjusting your search or filter criteria
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedCategory("all");
-                    setSortBy("name");
-                  }}
-                  className="bg-brand-purple text-white px-8 py-3 rounded-full font-sans font-bold hover:bg-brand-purple/90 hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-brand-gold"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Newsletter */}
+      <section className="py-16 bg-brand-purple">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Stay Updated</h2>
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            Subscribe to our newsletter and be the first to know about new products, exclusive offers, and wellness tips.
+          </p>
+          <div className="max-w-md mx-auto flex gap-4">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
+            />
+            <button className="bg-brand-gold text-brand-charcoal px-6 py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors">
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+
