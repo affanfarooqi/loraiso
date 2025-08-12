@@ -1,24 +1,54 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { products, categories } from "../data/products";
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const productsRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "featured">("name");
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  const productsRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToProducts = () => {
     productsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const filteredProducts = useMemo(() => {
+    const byCategory =
+      selectedCategory === "all"
+        ? products
+        : products.filter((p) => p.category === selectedCategory);
+
+    const bySearch = searchTerm.trim()
+      ? byCategory.filter((p) =>
+          (p.name ?? "").toLowerCase().includes(searchTerm.trim().toLowerCase())
+        )
+      : byCategory;
+
+    const sorted = [...bySearch];
+    switch (sortBy) {
+      case "price-low":
+        sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+        break;
+      case "price-high":
+        sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+        break;
+      case "featured":
+        // assumes truthy p.featured means higher priority; fallback to name
+        sorted.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (a.name ?? "").localeCompare(b.name ?? ""));
+        break;
+      case "name":
+      default:
+        sorted.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+        break;
+    }
+    return sorted;
+  }, [selectedCategory, searchTerm, sortBy]);
+
   return (
-    <div className="bg-brand-cream text-brand-charcoal font-sans">
+    <div className="bg-brand-cream text-brand-charcoal font-sans min-h-screen">
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center hero-pattern">
         <div className="absolute inset-0 gradient-overlay"></div>
@@ -33,7 +63,10 @@ export default function HomePage() {
                 Crafted with care, delivered with excellence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button onClick={scrollToProducts} className="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg">
+                <button
+                  onClick={scrollToProducts}
+                  className="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg"
+                >
                   Explore Products
                 </button>
                 <button className="border-2 border-brand-gold text-brand-gold px-8 py-4 rounded-full font-semibold text-lg hover:bg-brand-gold hover:text-brand-charcoal transition-all">
@@ -41,6 +74,7 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
+
             <div className="floating-animation">
               <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-brand-gold/30">
                 <div className="text-center text-white">
@@ -54,10 +88,44 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* Search & Sort (below hero text on large screens) */}
+          <div className="mt-16 bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <div className="relative flex-1 w-full">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search products..."
+                  className="input pl-10 w-full"
+                />
+                <svg
+                  className="absolute left-3 top-3.5 w-5 h-5 text-brand-purple"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="select md:w-60"
+              >
+                <option value="name">Name (A–Z)</option>
+                <option value="price-low">Price (Low → High)</option>
+                <option value="price-high">Price (High → Low)</option>
+                <option value="featured">Featured First</option>
+              </select>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Products */}
       <section id="products" ref={productsRef} className="py-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -69,31 +137,54 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Product Categories */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          {/* Categories */}
+          <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-12">
             <button
               onClick={() => setSelectedCategory("all")}
-              className={`category-btn ${selectedCategory === "all" ? "active" : ""}`}
+              className={`category-chip ${selectedCategory === "all" ? "category-chip-active" : ""}`}
             >
-              All Products
+              All ({products.length})
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`category-btn ${selectedCategory === cat.id ? "active" : ""}`}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const count = products.filter((p) => p.category === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`category-chip ${selectedCategory === cat.id ? "category-chip-active" : ""}`}
+                >
+                  {cat.name} ({count})
+                </button>
+              );
+            })}
           </div>
 
           {/* Products Grid */}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {filteredProducts.length > 0 ? (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <svg className="w-20 h-20 text-brand-gold mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-2xl font-serif font-bold text-brand-charcoal mb-3">No products found</h3>
+              <p className="text-brand-charcoal mb-6 font-sans">Try adjusting your search or filter criteria</p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                  setSortBy("name");
+                }}
+                className="btn btn-primary"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -102,9 +193,7 @@ export default function HomePage() {
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-charcoal mb-6">
-                Our Story
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-serif font-bold text-brand-charcoal mb-6">Our Story</h2>
               <p className="text-lg text-brand-charcoal/80 mb-6 leading-relaxed">
                 At Loraiso, we believe in the power of pure, natural ingredients. Our journey began with a simple mission:
                 to bring you the finest quality products that nature has to offer, preserved in their most authentic form.
@@ -123,7 +212,7 @@ export default function HomePage() {
                   <div className="text-sm text-brand-charcoal/70">Premium Products</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">10K+</div>
+                  <div className="text-3xl font-serif font-bold text-brand-purple mb-2">10K+</</div>
                   <div className="text-sm text-brand-charcoal/70">Happy Customers</div>
                 </div>
               </div>
@@ -165,4 +254,3 @@ export default function HomePage() {
     </div>
   );
 }
-
